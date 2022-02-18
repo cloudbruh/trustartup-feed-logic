@@ -15,27 +15,39 @@ namespace CloudBruh.Trustartup.FeedLogic.Controllers;
 public class StartupFeedController : ControllerBase
 {
     private readonly FeedContentService _feedContentService;
+    private readonly UserService _userService;
 
-    public StartupFeedController(FeedContentService feedContentService)
+    public StartupFeedController(FeedContentService feedContentService, UserService userService)
     {
         _feedContentService = feedContentService;
+        _userService = userService;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<StartupFeedItem>>> GetFeed(int count = 20, double? maxRating = null)
     {
-        IEnumerable<StartupRawDto>? startups = await _feedContentService.GetStartupsAsync(count, maxRating);
+        List<StartupRawDto>? startups = (await _feedContentService.GetStartupsAsync(count, maxRating))?.ToList();
 
-        return startups?.Select(dto => new StartupFeedItem
+        Dictionary<long, UserRawDto?>? users = startups?.Select(dto => dto.UserId).Distinct()
+            .Select(async userId => await _userService.GetUserAsync(userId)).Select(task => task.Result)
+            .ToDictionary(dto => dto.Id);
+
+        return startups?.Select(async dto =>
         {
-            Id = dto.Id,
-            Name = dto.Name,
-            DescriptionShort = dto.Description,
-            UserId = dto.UserId,
-            EndingAt = dto.EndingAt,
-            FundsGoal = dto.FundsGoal,
-            Rating = dto.Rating,
-            ThumbnailLink = ""
-        }).ToList() ?? new List<StartupFeedItem>();
+            UserRawDto? user = await _userService.GetUserAsync(dto.UserId);
+            return new StartupFeedItem
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                DescriptionShort = dto.Description,
+                UserId = dto.UserId,
+                UserName = user?.Name ?? "",
+                UserSurname = user?.Surname ?? "",
+                EndingAt = dto.EndingAt,
+                FundsGoal = dto.FundsGoal,
+                Rating = dto.Rating,
+                ThumbnailLink = ""
+            };
+        }).Select(task => task.Result).ToList() ?? new List<StartupFeedItem>();
     }
 }

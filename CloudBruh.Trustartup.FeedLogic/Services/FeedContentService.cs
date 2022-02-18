@@ -19,4 +19,9 @@ public class FeedContentService
             ? $"api/Startup?count={count}"
             : $"api/Startup?count={count}&maxRating={maxRating}");
     }
+
+    public async Task<StartupRawDto?> GetStartupAsync(long id)
+    {
+        return await _httpClient.GetFromJsonAsync<StartupRawDto>($"api/Startup/{id}");
+    }
 }
