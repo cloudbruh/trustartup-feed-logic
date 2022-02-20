@@ -20,7 +20,7 @@ public class StartupController : ControllerBase
     }
 
     // GET: api/Startup/5
-    [HttpGet("{id:long}", Name = "Get")]
+    [HttpGet("{id:long}")]
     public async Task<ActionResult<StartupDetail>> GetStartup(long id)
     {
         StartupRawDto? dto = await _feedContentService.GetStartupAsync(id);
