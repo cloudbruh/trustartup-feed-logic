@@ -4,10 +4,12 @@ namespace CloudBruh.Trustartup.FeedLogic.Services;
 
 public class UserService
 {
+    private readonly ILogger<UserService> _logger;
     private readonly HttpClient _httpClient;
 
-    public UserService(HttpClient httpClient, IConfiguration config)
+    public UserService(ILogger<UserService> logger, HttpClient httpClient, IConfiguration config)
     {
+        _logger = logger;
         _httpClient = httpClient;
         
         _httpClient.BaseAddress = new Uri(config.GetValue<string>("Settings:UserSystemUrl"));
@@ -15,11 +17,27 @@ public class UserService
     
     public async Task<IEnumerable<UserRawDto>?> GetUsersAsync()
     {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<UserRawDto>>("users");
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<UserRawDto>>("users");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve users, {Exception}", e.Message);
+            return null;
+        }
     }
 
     public async Task<UserRawDto?> GetUserAsync(long id)
     {
-        return await _httpClient.GetFromJsonAsync<UserRawDto>($"users/{id}");
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<UserRawDto>($"users/{id}");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve user with id {Id}, {Exception}", id, e.Message);
+            return null;
+        }
     }
 }

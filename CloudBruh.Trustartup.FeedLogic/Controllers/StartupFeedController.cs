@@ -8,15 +8,15 @@ namespace CloudBruh.Trustartup.FeedLogic.Controllers;
 [ApiController]
 public class StartupFeedController : ControllerBase
 {
-    private readonly ILogger<StartupFeedController> _logger;
     private readonly FeedContentService _feedContentService;
     private readonly UserService _userService;
+    private readonly MediaService _mediaService;
 
-    public StartupFeedController(ILogger<StartupFeedController> logger, FeedContentService feedContentService, UserService userService)
+    public StartupFeedController(FeedContentService feedContentService, UserService userService, MediaService mediaService)
     {
-        _logger = logger;
         _feedContentService = feedContentService;
         _userService = userService;
+        _mediaService = mediaService;
     }
 
     [HttpGet]
@@ -28,23 +28,19 @@ public class StartupFeedController : ControllerBase
         Dictionary<long, UserRawDto?> users = startups
             .Select(dto => dto.UserId)
             .Distinct()
-            .Select(userId =>
-            {
-                try
-                {
-                    return (userId, _userService.GetUserAsync(userId).Result);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError("Could not retrieve user with id {UserId}, {Exception}", userId, e.Message);
-                    return (userId, null);
-                }
-            })
+            .Select(userId => (userId, _userService.GetUserAsync(userId).Result))
             .ToDictionary(tuple => tuple.userId, tuple => tuple.Result);
 
         return startups.Select(dto =>
         {
             users.TryGetValue(dto.UserId, out UserRawDto? user);
+
+            MediaRelationshipRawDto? thumbnailRelation = _feedContentService
+                .GetMediaRelationshipsAsync(MediableType.Startup, dto.Id).Result?.FirstOrDefault();
+            MediaRawDto? thumbnail = thumbnailRelation != null
+                ? _mediaService.GetMediumAsync(thumbnailRelation.MediaId).Result
+                : null;
+            
             return new StartupFeedItem
             {
                 Id = dto.Id,
@@ -56,7 +52,7 @@ public class StartupFeedController : ControllerBase
                 EndingAt = dto.EndingAt,
                 FundsGoal = dto.FundsGoal,
                 Rating = dto.Rating,
-                ThumbnailLink = ""
+                ThumbnailLink = thumbnail?.Link
             };
         }).ToList();
     }

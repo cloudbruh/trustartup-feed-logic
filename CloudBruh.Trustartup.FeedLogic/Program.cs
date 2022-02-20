@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CloudBruh.Trustartup.FeedLogic.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -5,7 +6,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddHttpClient<FeedContentService>();
 builder.Services.AddHttpClient<UserService>();
-builder.Services.AddControllers();
+builder.Services.AddHttpClient<MediaService>();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

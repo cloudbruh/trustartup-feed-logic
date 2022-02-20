@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using CloudBruh.Trustartup.FeedLogic.Models;
+using CloudBruh.Trustartup.FeedLogic.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CloudBruh.Trustartup.FeedLogic.Controllers;
@@ -11,35 +8,48 @@ namespace CloudBruh.Trustartup.FeedLogic.Controllers;
 [ApiController]
 public class StartupController : ControllerBase
 {
-    // GET: api/Startup
-    [HttpGet]
-    public IEnumerable<string> Get()
+    private readonly FeedContentService _feedContentService;
+    private readonly UserService _userService;
+    private readonly MediaService _mediaService;
+
+    public StartupController(FeedContentService feedContentService, UserService userService, MediaService mediaService)
     {
-        return new string[] { "value1", "value2" };
+        _feedContentService = feedContentService;
+        _userService = userService;
+        _mediaService = mediaService;
     }
 
     // GET: api/Startup/5
-    [HttpGet("{id}", Name = "Get")]
-    public string Get(int id)
+    [HttpGet("{id:long}", Name = "Get")]
+    public async Task<ActionResult<StartupDetail>> GetStartup(long id)
     {
-        return "value";
-    }
+        StartupRawDto? dto = await _feedContentService.GetStartupAsync(id);
 
-    // POST: api/Startup
-    [HttpPost]
-    public void Post([FromBody] string value)
-    {
-    }
+        if (dto is null)
+        {
+            return NotFound();
+        }
 
-    // PUT: api/Startup/5
-    [HttpPut("{id}")]
-    public void Put(int id, [FromBody] string value)
-    {
-    }
+        UserRawDto? user = await _userService.GetUserAsync(dto.UserId);
 
-    // DELETE: api/Startup/5
-    [HttpDelete("{id}")]
-    public void Delete(int id)
-    {
+        List<string> images = (await _feedContentService.GetMediaRelationshipsAsync(MediableType.Startup, dto.Id)
+                               ?? Array.Empty<MediaRelationshipRawDto>())
+            .Select(relation => _mediaService.GetMediumAsync(relation.MediaId).Result?.Link)
+            .OfType<string>()
+            .ToList();
+
+        return new StartupDetail
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            UserId = dto.UserId,
+            UserName = user?.Name ?? "",
+            UserSurname = user?.Surname ?? "",
+            EndingAt = dto.EndingAt,
+            FundsGoal = dto.FundsGoal,
+            Rating = dto.Rating,
+            ImageLinks = images
+        };
     }
 }
