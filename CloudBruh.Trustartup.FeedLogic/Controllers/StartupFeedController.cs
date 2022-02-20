@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using CloudBruh.Trustartup.FeedLogic.Models;
 using CloudBruh.Trustartup.FeedLogic.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CloudBruh.Trustartup.FeedLogic.Controllers;
@@ -14,11 +8,13 @@ namespace CloudBruh.Trustartup.FeedLogic.Controllers;
 [ApiController]
 public class StartupFeedController : ControllerBase
 {
+    private readonly ILogger<StartupFeedController> _logger;
     private readonly FeedContentService _feedContentService;
     private readonly UserService _userService;
 
-    public StartupFeedController(FeedContentService feedContentService, UserService userService)
+    public StartupFeedController(ILogger<StartupFeedController> logger, FeedContentService feedContentService, UserService userService)
     {
+        _logger = logger;
         _feedContentService = feedContentService;
         _userService = userService;
     }
@@ -26,15 +22,29 @@ public class StartupFeedController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<StartupFeedItem>>> GetFeed(int count = 20, double? maxRating = null)
     {
-        List<StartupRawDto>? startups = (await _feedContentService.GetStartupsAsync(count, maxRating))?.ToList();
+        List<StartupRawDto> startups = (await _feedContentService.GetStartupsAsync(count, maxRating))?.ToList()
+                                       ?? new List<StartupRawDto>();
 
-        Dictionary<long, UserRawDto?>? users = startups?.Select(dto => dto.UserId).Distinct()
-            .Select(async userId => await _userService.GetUserAsync(userId)).Select(task => task.Result)
-            .ToDictionary(dto => dto.Id);
+        Dictionary<long, UserRawDto?> users = startups
+            .Select(dto => dto.UserId)
+            .Distinct()
+            .Select(userId =>
+            {
+                try
+                {
+                    return (userId, _userService.GetUserAsync(userId).Result);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Could not retrieve user with id {UserId}, {Exception}", userId, e.Message);
+                    return (userId, null);
+                }
+            })
+            .ToDictionary(tuple => tuple.userId, tuple => tuple.Result);
 
-        return startups?.Select(async dto =>
+        return startups.Select(dto =>
         {
-            UserRawDto? user = await _userService.GetUserAsync(dto.UserId);
+            users.TryGetValue(dto.UserId, out UserRawDto? user);
             return new StartupFeedItem
             {
                 Id = dto.Id,
@@ -48,6 +58,6 @@ public class StartupFeedController : ControllerBase
                 Rating = dto.Rating,
                 ThumbnailLink = ""
             };
-        }).Select(task => task.Result).ToList() ?? new List<StartupFeedItem>();
+        }).ToList();
     }
 }
