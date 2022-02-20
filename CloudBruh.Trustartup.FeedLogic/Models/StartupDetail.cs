@@ -12,4 +12,6 @@ public record StartupDetail
     public decimal FundsGoal { get; init; }
     public double Rating { get; init; }
     public List<string> ImageLinks { get; init; }
+    public DateTime UpdatedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
 }

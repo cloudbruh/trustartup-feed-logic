@@ -79,4 +79,32 @@ public class FeedContentService
             return null;
         }
     }
+    
+    public async Task<IEnumerable<PostRawDto>?> GetPostsAsync(long? startupId = null)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<PostRawDto>>(startupId == null
+                ? "api/Post"
+                : $"api/Post?startupId={startupId}");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve posts, {Exception}", e.Message);
+            return null;
+        }
+    }
+
+    public async Task<PostRawDto?> GetPostAsync(long id)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<PostRawDto>($"api/Post/{id}");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve post with id {Id}, {Exception}", id, e.Message);
+            return null;
+        }
+    }
 }

@@ -49,7 +49,34 @@ public class StartupController : ControllerBase
             EndingAt = dto.EndingAt,
             FundsGoal = dto.FundsGoal,
             Rating = dto.Rating,
-            ImageLinks = images
+            ImageLinks = images,
+            UpdatedAt = dto.UpdatedAt,
+            CreatedAt = dto.CreatedAt
         };
+    }
+
+    [HttpGet("{startupId:long}/posts")]
+    public async Task<ActionResult<List<Post>>> GetStartupPosts(long startupId)
+    {
+        return (await _feedContentService.GetPostsAsync(startupId) ?? Array.Empty<PostRawDto>())
+            .Select(dto => 
+            {
+                List<string> images = (_feedContentService.GetMediaRelationshipsAsync(MediableType.Post, dto.Id).Result
+                                       ?? Array.Empty<MediaRelationshipRawDto>())
+                    .Select(relation => _mediaService.GetMediumAsync(relation.MediaId).Result?.Link)
+                    .OfType<string>()
+                    .ToList();
+
+                return new Post
+                {
+                    Id = dto.Id,
+                    StartupId = dto.StartupId,
+                    Header = dto.Header,
+                    Text = dto.Text,
+                    ImageLinks = images,
+                    UpdatedAt = dto.UpdatedAt,
+                    CreatedAt = dto.CreatedAt
+                };
+            }).ToList();
     }
 }
