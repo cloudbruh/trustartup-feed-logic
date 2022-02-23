@@ -1,5 +1,6 @@
 using CloudBruh.Trustartup.FeedLogic.Models;
 using CloudBruh.Trustartup.FeedLogic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CloudBruh.Trustartup.FeedLogic.Controllers;
@@ -78,5 +79,26 @@ public class StartupController : ControllerBase
                     CreatedAt = dto.CreatedAt
                 };
             }).ToList();
+    }
+    
+    [Authorize]
+    [HttpPost("{id:long}/like")]
+    public async Task<ActionResult<LikeRawDto>> PostLike(long id)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        var dto = new LikeRawDto
+        {
+            UserId = userId,
+            LikeableId = id,
+            LikeableType = LikeableType.Startup
+        };
+
+        LikeRawDto? result = await _feedContentService.PostLikeAsync(dto);
+
+        return result == null ? BadRequest("Failed to like") : result;
     }
 }

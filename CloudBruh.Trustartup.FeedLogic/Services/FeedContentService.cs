@@ -107,4 +107,18 @@ public class FeedContentService
             return null;
         }
     }
+
+    public async Task<LikeRawDto?> PostLikeAsync(LikeRawDto likeRawDto)
+    {
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/Like", likeRawDto);
+            return JsonSerializer.Deserialize<LikeRawDto>(await response.Content.ReadAsStreamAsync(), SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not post the like, {Exception}", e.Message);
+            return null;
+        }
+    }
 }
