@@ -6,7 +6,6 @@ public record MediaRawDto
     public long UserId { get; init; }
     public bool IsPublic { get; init; }
     public string? Link { get; init; }
-    public MediaType Type { get; init; }
     public string MimeType { get; init; }
     public DateTime UpdatedAt { get; init; }
     public DateTime CreatedAt { get; init; }
