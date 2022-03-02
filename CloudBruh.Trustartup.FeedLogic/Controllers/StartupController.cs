@@ -101,4 +101,11 @@ public class StartupController : ControllerBase
 
         return result == null ? BadRequest("Failed to like") : result;
     }
+    
+    [HttpGet("{startupId:long}/comments")]
+    public async Task<ActionResult<List<CommentRawDto>>> GetStartupComments(long startupId)
+    {
+        return (await _feedContentService.GetCommentsAsync(CommentableType.Startup, startupId)
+                ?? Array.Empty<CommentRawDto>()).ToList();
+    }
 }

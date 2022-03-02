@@ -121,4 +121,47 @@ public class FeedContentService
             return null;
         }
     }
+    
+    public async Task<IEnumerable<CommentRawDto>?> GetCommentsAsync(CommentableType? commentableType = null, long? commentableId = null)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<CommentRawDto>>(commentableType == null
+                    ? "api/Comment"
+                    : $"api/Comment?commentableType={commentableType}&commentableId={commentableId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve comments, {Exception}", e.Message);
+            return null;
+        }
+    }
+
+    public async Task<CommentRawDto?> GetCommentAsync(long id)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<CommentRawDto>($"api/Comment/{id}");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve comment with id {Id}, {Exception}", id, e.Message);
+            return null;
+        }
+    }
+
+    public async Task<CommentRawDto?> PostCommentAsync(CommentRawDto commentRawDto)
+    {
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/Comment", commentRawDto);
+            return JsonSerializer.Deserialize<CommentRawDto>(await response.Content.ReadAsStreamAsync(), SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not post the comment, {Exception}", e.Message);
+            return null;
+        }
+    }
 }

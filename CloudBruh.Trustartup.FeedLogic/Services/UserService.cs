@@ -19,7 +19,7 @@ public class UserService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<UserRawDto>>("users");
+            return await _httpClient.GetFromJsonAsync<IEnumerable<UserRawDto>>("user");
         }
         catch (HttpRequestException e)
         {
@@ -32,7 +32,7 @@ public class UserService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<UserRawDto>($"users/{id}");
+            return await _httpClient.GetFromJsonAsync<UserRawDto>($"user/{id}");
         }
         catch (HttpRequestException e)
         {
