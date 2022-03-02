@@ -1,0 +1,13 @@
+services:
+  feed-logic:
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Authentication__JwtRsaPublicKey=MIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBsAJJ+O3fTxnPlXCleUCLGleHad+0u/4P+qKoul2Sd49b6Ta/4OfK/NCGDhzCSEYSqXBIiEPEuUtKJgk8xvzBwVUDOG8E1VU8NDPN1/uSUz7+1yFO4DpFQA/VgQaPXBhxO6JnpyDyHvX/4UuBs4QGhVAZVhWdnJmRFcvBB98HoA2/x5Lkv78nAdT65gXWKdVe1eo+61nH5g8JwHEKJ6sPi6kzPyVHI36mK0PcManhMBWQOupj1p0NWQjuphMLkJyMpeN2FiqT1GTUnOKe1M5PbjrUycVRhYZFM6wDYEMdooQR46Ie/tLXyr4k47qlI+LkxIAkkAerlF9D8uqEm7R2tAgMBAAE=
+      - Settings__FeedContentSystemUrl=http://host.docker.internal:8081
+      - Settings__MediaSystemUrl=http://host.docker.internal:8083
+      - Settings__UserSystemUrl=http://host.docker.internal:8084
+    ports:
+      - "8088:80"
