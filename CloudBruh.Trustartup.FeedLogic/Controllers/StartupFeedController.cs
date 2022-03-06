@@ -40,6 +40,9 @@ public class StartupFeedController : ControllerBase
             MediaRawDto? thumbnail = thumbnailRelation != null
                 ? _mediaService.GetMediumAsync(thumbnailRelation.MediaId).Result
                 : null;
+
+            long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
+            long follows = _feedContentService.GetFollowsCountAsync(dto.Id).Result ?? 0;
             
             return new StartupFeedItem
             {
@@ -52,6 +55,8 @@ public class StartupFeedController : ControllerBase
                 EndingAt = dto.EndingAt,
                 FundsGoal = dto.FundsGoal,
                 Rating = dto.Rating,
+                Likes = likes,
+                Follows = follows,
                 ThumbnailLink = thumbnail?.Link
             };
         }).ToList();

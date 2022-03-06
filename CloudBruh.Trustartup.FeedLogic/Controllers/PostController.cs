@@ -37,12 +37,15 @@ public class PostController : ControllerBase
             .OfType<string>()
             .ToList();
 
+        long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
+        
         return new Post
         {
             Id = dto.Id,
             StartupId = dto.StartupId,
             Header = dto.Header,
             Text = dto.Text,
+            Likes = likes,
             ImageLinks = images,
             UpdatedAt = dto.UpdatedAt,
             CreatedAt = dto.CreatedAt

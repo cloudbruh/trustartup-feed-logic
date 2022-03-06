@@ -11,6 +11,8 @@ public record StartupDetail
     public DateTime EndingAt { get; init; }
     public decimal FundsGoal { get; init; }
     public double Rating { get; init; }
+    public long Likes { get; init; }
+    public long Follows { get; init; }
     public List<string> ImageLinks { get; init; }
     public DateTime UpdatedAt { get; init; }
     public DateTime CreatedAt { get; init; }

@@ -11,5 +11,7 @@ public record StartupFeedItem
     public DateTime EndingAt { get; init; }
     public decimal FundsGoal { get; init; }
     public double Rating { get; init; }
+    public long Likes { get; init; }
+    public long Follows { get; init; }
     public string? ThumbnailLink { get; init; }
 }

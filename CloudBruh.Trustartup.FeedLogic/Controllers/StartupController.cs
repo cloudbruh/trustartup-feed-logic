@@ -38,6 +38,9 @@ public class StartupController : ControllerBase
             .Select(relation => _mediaService.GetMediumAsync(relation.MediaId).Result?.Link)
             .OfType<string>()
             .ToList();
+        
+        long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
+        long follows = _feedContentService.GetFollowsCountAsync(dto.Id).Result ?? 0;
 
         return new StartupDetail
         {
@@ -50,6 +53,8 @@ public class StartupController : ControllerBase
             EndingAt = dto.EndingAt,
             FundsGoal = dto.FundsGoal,
             Rating = dto.Rating,
+            Likes = likes,
+            Follows = follows,
             ImageLinks = images,
             UpdatedAt = dto.UpdatedAt,
             CreatedAt = dto.CreatedAt
@@ -68,12 +73,15 @@ public class StartupController : ControllerBase
                     .OfType<string>()
                     .ToList();
 
+                long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
+                
                 return new Post
                 {
                     Id = dto.Id,
                     StartupId = dto.StartupId,
                     Header = dto.Header,
                     Text = dto.Text,
+                    Likes = likes,
                     ImageLinks = images,
                     UpdatedAt = dto.UpdatedAt,
                     CreatedAt = dto.CreatedAt

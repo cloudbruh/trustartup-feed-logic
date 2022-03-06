@@ -107,6 +107,37 @@ public class FeedContentService
             return null;
         }
     }
+    
+    public async Task<IEnumerable<LikeRawDto>?> GetLikesAsync(LikeableType? likeableType = null, long? likeableId = null)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<LikeRawDto>>(likeableType == null
+                    ? "api/Like"
+                    : $"api/Like?likeableType={likeableType}&likeableId={likeableId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve likes, {Exception}", e.Message);
+            return null;
+        }
+    }
+    
+    public async Task<long?> GetLikesCountAsync(LikeableType likeableType, long likeableId)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<long>(
+                $"api/Like/count?likeableType={likeableType}&likeableId={likeableId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve like count, {Exception}", e.Message);
+            return null;
+        }
+    }
 
     public async Task<LikeRawDto?> PostLikeAsync(LikeRawDto likeRawDto)
     {
@@ -118,6 +149,51 @@ public class FeedContentService
         catch (HttpRequestException e)
         {
             _logger.LogError("Could not post the like, {Exception}", e.Message);
+            return null;
+        }
+    }
+    
+    public async Task<IEnumerable<FollowRawDto>?> GetFollowsAsync(long? startupId = null)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<FollowRawDto>>(startupId == null
+                    ? "api/Follow"
+                    : $"api/Follow?startupId={startupId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve follows, {Exception}", e.Message);
+            return null;
+        }
+    }
+    
+    public async Task<long?> GetFollowsCountAsync(long startupId)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<long>(
+                $"api/Follow/count?startupId={startupId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve follow count, {Exception}", e.Message);
+            return null;
+        }
+    }
+
+    public async Task<FollowRawDto?> PostFollowAsync(FollowRawDto followRawDto)
+    {
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/Follow", followRawDto);
+            return JsonSerializer.Deserialize<FollowRawDto>(await response.Content.ReadAsStreamAsync(), SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not post the follow, {Exception}", e.Message);
             return null;
         }
     }
