@@ -50,7 +50,7 @@ public class StartupFeedController : ControllerBase
                 Name = dto.Name,
                 DescriptionShort = dto.Description,
                 UserId = dto.UserId,
-                UserName = user?.Name ?? "",
+                UserName = user?.Name ?? dto.UserId.ToString(),
                 UserSurname = user?.Surname ?? "",
                 EndingAt = dto.EndingAt,
                 FundsGoal = dto.FundsGoal,

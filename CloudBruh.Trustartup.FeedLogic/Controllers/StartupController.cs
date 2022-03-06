@@ -111,9 +111,34 @@ public class StartupController : ControllerBase
     }
     
     [HttpGet("{startupId:long}/comments")]
-    public async Task<ActionResult<List<CommentRawDto>>> GetStartupComments(long startupId)
+    public async Task<ActionResult<List<Comment>>> GetStartupComments(long startupId)
     {
-        return (await _feedContentService.GetCommentsAsync(CommentableType.Startup, startupId)
-                ?? Array.Empty<CommentRawDto>()).ToList();
+        List<CommentRawDto> comments = (await _feedContentService.GetCommentsAsync(CommentableType.Startup, startupId))?.ToList()
+                                       ?? new List<CommentRawDto>();
+        
+        Dictionary<long, UserRawDto?> users = comments
+            .Select(dto => dto.UserId)
+            .Distinct()
+            .Select(userId => (userId, _userService.GetUserAsync(userId).Result))
+            .ToDictionary(tuple => tuple.userId, tuple => tuple.Result);
+
+        return comments.Select(dto =>
+        {
+            users.TryGetValue(dto.UserId, out UserRawDto? user);
+            
+            return new Comment
+            {
+                Id = dto.Id,
+                UserId = dto.UserId,
+                UserName = user?.Name ?? dto.UserId.ToString(),
+                UserSurname = user?.Surname ?? "",
+                CommentableId = dto.CommentableId,
+                CommentableType = dto.CommentableType,
+                RepliedId = dto.RepliedId,
+                Text = dto.Text,
+                UpdatedAt = dto.UpdatedAt,
+                CreatedAt = dto.CreatedAt
+            };
+        }).ToList();
     }
 }

@@ -72,4 +72,36 @@ public class PostController : ControllerBase
 
         return result == null ? BadRequest("Failed to like") : result;
     }
+    
+    [HttpGet("{postId:long}/comments")]
+    public async Task<ActionResult<List<Comment>>> GetStartupComments(long postId)
+    {
+        List<CommentRawDto> comments = (await _feedContentService.GetCommentsAsync(CommentableType.Post, postId))?.ToList()
+                                       ?? new List<CommentRawDto>();
+        
+        Dictionary<long, UserRawDto?> users = comments
+            .Select(dto => dto.UserId)
+            .Distinct()
+            .Select(userId => (userId, _userService.GetUserAsync(userId).Result))
+            .ToDictionary(tuple => tuple.userId, tuple => tuple.Result);
+
+        return comments.Select(dto =>
+        {
+            users.TryGetValue(dto.UserId, out UserRawDto? user);
+            
+            return new Comment
+            {
+                Id = dto.Id,
+                UserId = dto.UserId,
+                UserName = user?.Name ?? dto.UserId.ToString(),
+                UserSurname = user?.Surname ?? "",
+                CommentableId = dto.CommentableId,
+                CommentableType = dto.CommentableType,
+                RepliedId = dto.RepliedId,
+                Text = dto.Text,
+                UpdatedAt = dto.UpdatedAt,
+                CreatedAt = dto.CreatedAt
+            };
+        }).ToList();
+    }
 }
