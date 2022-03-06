@@ -42,6 +42,14 @@ public class StartupController : ControllerBase
         long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
         long follows = _feedContentService.GetFollowsCountAsync(dto.Id).Result ?? 0;
 
+        var liked = false;
+        var followed = false;
+        if (long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId))
+        {
+            liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Startup, dto.Id, loggedUserId) ?? false;
+            followed = await _feedContentService.GetFollowCheckAsync(dto.Id, loggedUserId) ?? false;
+        }
+        
         return new StartupDetail
         {
             Id = dto.Id,
@@ -55,6 +63,8 @@ public class StartupController : ControllerBase
             Rating = dto.Rating,
             Likes = likes,
             Follows = follows,
+            Liked = liked,
+            Followed = followed,
             ImageLinks = images,
             UpdatedAt = dto.UpdatedAt,
             CreatedAt = dto.CreatedAt
@@ -64,6 +74,8 @@ public class StartupController : ControllerBase
     [HttpGet("{startupId:long}/posts")]
     public async Task<ActionResult<List<Post>>> GetStartupPosts(long startupId)
     {
+        bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
+        
         return (await _feedContentService.GetPostsAsync(startupId) ?? Array.Empty<PostRawDto>())
             .Select(dto => 
             {
@@ -73,7 +85,13 @@ public class StartupController : ControllerBase
                     .OfType<string>()
                     .ToList();
 
-                long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
+                long likes = _feedContentService.GetLikesCountAsync(LikeableType.Post, dto.Id).Result ?? 0;
+                
+                var liked = false;
+                if (loggedIn)
+                {
+                    liked = _feedContentService.GetLikeCheckAsync(LikeableType.Post, dto.Id, loggedUserId).Result ?? false;
+                }
                 
                 return new Post
                 {
@@ -82,6 +100,7 @@ public class StartupController : ControllerBase
                     Header = dto.Header,
                     Text = dto.Text,
                     Likes = likes,
+                    Liked = liked,
                     ImageLinks = images,
                     UpdatedAt = dto.UpdatedAt,
                     CreatedAt = dto.CreatedAt

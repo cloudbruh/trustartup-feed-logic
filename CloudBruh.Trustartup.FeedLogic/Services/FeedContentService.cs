@@ -138,6 +138,21 @@ public class FeedContentService
             return null;
         }
     }
+    
+    public async Task<bool?> GetLikeCheckAsync(LikeableType likeableType, long likeableId, long userId)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<bool>(
+                $"api/Like/check?likeableType={likeableType}&likeableId={likeableId}&userId={userId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not check like, {Exception}", e.Message);
+            return null;
+        }
+    }
 
     public async Task<LikeRawDto?> PostLikeAsync(LikeRawDto likeRawDto)
     {
@@ -180,6 +195,21 @@ public class FeedContentService
         catch (HttpRequestException e)
         {
             _logger.LogError("Could not retrieve follow count, {Exception}", e.Message);
+            return null;
+        }
+    }
+    
+    public async Task<bool?> GetFollowCheckAsync(long startupId, long userId)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<bool>(
+                $"api/Follow/check?startupId={startupId}&userId={userId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not check follow, {Exception}", e.Message);
             return null;
         }
     }

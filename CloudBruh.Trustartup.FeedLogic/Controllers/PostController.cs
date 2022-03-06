@@ -22,13 +22,19 @@ public class PostController : ControllerBase
     
     // GET: api/Post/5
     [HttpGet("{id:long}")]
-    public async Task<ActionResult<Post>> GetStartup(long id)
+    public async Task<ActionResult<Post>> GetPost(long id)
     {
         PostRawDto? dto = await _feedContentService.GetPostAsync(id);
 
         if (dto is null)
         {
             return NotFound();
+        }
+
+        var liked = false;
+        if (long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId))
+        {
+            liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Post, dto.Id, loggedUserId) ?? false;
         }
 
         List<string> images = (_feedContentService.GetMediaRelationshipsAsync(MediableType.Post, dto.Id).Result
@@ -46,6 +52,7 @@ public class PostController : ControllerBase
             Header = dto.Header,
             Text = dto.Text,
             Likes = likes,
+            Liked = liked,
             ImageLinks = images,
             UpdatedAt = dto.UpdatedAt,
             CreatedAt = dto.CreatedAt
@@ -74,7 +81,7 @@ public class PostController : ControllerBase
     }
     
     [HttpGet("{postId:long}/comments")]
-    public async Task<ActionResult<List<Comment>>> GetStartupComments(long postId)
+    public async Task<ActionResult<List<Comment>>> GetPostComments(long postId)
     {
         List<CommentRawDto> comments = (await _feedContentService.GetCommentsAsync(CommentableType.Post, postId))?.ToList()
                                        ?? new List<CommentRawDto>();

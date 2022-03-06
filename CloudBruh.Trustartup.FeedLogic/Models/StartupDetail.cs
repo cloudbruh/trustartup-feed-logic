@@ -13,6 +13,8 @@ public record StartupDetail
     public double Rating { get; init; }
     public long Likes { get; init; }
     public long Follows { get; init; }
+    public bool Liked { get; init; }
+    public bool Followed { get; init; }
     public List<string> ImageLinks { get; init; }
     public DateTime UpdatedAt { get; init; }
     public DateTime CreatedAt { get; init; }

@@ -25,6 +25,8 @@ public class StartupFeedController : ControllerBase
         List<StartupRawDto> startups = (await _feedContentService.GetStartupsAsync(count, maxRating))?.ToList()
                                        ?? new List<StartupRawDto>();
 
+        bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
+
         Dictionary<long, UserRawDto?> users = startups
             .Select(dto => dto.UserId)
             .Distinct()
@@ -43,6 +45,14 @@ public class StartupFeedController : ControllerBase
 
             long likes = _feedContentService.GetLikesCountAsync(LikeableType.Startup, dto.Id).Result ?? 0;
             long follows = _feedContentService.GetFollowsCountAsync(dto.Id).Result ?? 0;
+
+            var liked = false;
+            var followed = false;
+            if (loggedIn)
+            {
+                liked = _feedContentService.GetLikeCheckAsync(LikeableType.Startup, dto.Id, loggedUserId).Result ?? false;
+                followed = _feedContentService.GetFollowCheckAsync(dto.Id, loggedUserId).Result ?? false;
+            }
             
             return new StartupFeedItem
             {
@@ -57,6 +67,8 @@ public class StartupFeedController : ControllerBase
                 Rating = dto.Rating,
                 Likes = likes,
                 Follows = follows,
+                Liked = liked,
+                Followed = followed,
                 ThumbnailLink = thumbnail?.Link
             };
         }).ToList();
