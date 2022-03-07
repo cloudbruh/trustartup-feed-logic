@@ -61,7 +61,7 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPost("{id:long}/like")]
-    public async Task<ActionResult<LikeRawDto>> PostLike(long id)
+    public async Task<ActionResult<LikesInfo>> PostLike(long id)
     {
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
@@ -76,8 +76,47 @@ public class PostController : ControllerBase
         };
 
         LikeRawDto? result = await _feedContentService.PostLikeAsync(dto);
+        if (result == null)
+        {
+            return BadRequest("Failed to like");
+        }
 
-        return result == null ? BadRequest("Failed to like") : result;
+        long likes = await _feedContentService.GetLikesCountAsync(LikeableType.Post, id) ?? 0;
+        bool liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Post, id, userId) ?? false;
+
+        return new LikesInfo()
+        {
+            LikeableType = LikeableType.Post,
+            LikeableId = id,
+            Likes = likes,
+            Liked = liked
+        };
+    }
+    
+    [Authorize]
+    [HttpDelete("{id:long}/like")]
+    public async Task<ActionResult<LikesInfo>> DeleteLike(long id)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        if (!await _feedContentService.DeleteLikeAsync(LikeableType.Post, id, userId))
+        {
+            return BadRequest("Failed to remove like");
+        }
+        
+        long likes = await _feedContentService.GetLikesCountAsync(LikeableType.Post, id) ?? 0;
+        bool liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Post, id, userId) ?? false;
+
+        return new LikesInfo()
+        {
+            LikeableType = LikeableType.Post,
+            LikeableId = id,
+            Likes = likes,
+            Liked = liked
+        };
     }
     
     [HttpGet("{postId:long}/comments")]

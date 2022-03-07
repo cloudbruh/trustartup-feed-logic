@@ -110,7 +110,7 @@ public class StartupController : ControllerBase
     
     [Authorize]
     [HttpPost("{id:long}/like")]
-    public async Task<ActionResult<LikeRawDto>> PostLike(long id)
+    public async Task<ActionResult<LikesInfo>> PostLike(long id)
     {
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
@@ -125,8 +125,104 @@ public class StartupController : ControllerBase
         };
 
         LikeRawDto? result = await _feedContentService.PostLikeAsync(dto);
+        if (result == null)
+        {
+            return BadRequest("Failed to like");
+        }
 
-        return result == null ? BadRequest("Failed to like") : result;
+        long likes = await _feedContentService.GetLikesCountAsync(LikeableType.Startup, id) ?? 0;
+        bool liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Startup, id, userId) ?? false;
+
+        return new LikesInfo()
+        {
+            LikeableType = LikeableType.Startup,
+            LikeableId = id,
+            Likes = likes,
+            Liked = liked
+        };
+    }
+    
+    [Authorize]
+    [HttpDelete("{id:long}/like")]
+    public async Task<ActionResult<LikesInfo>> DeleteLike(long id)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        if (!await _feedContentService.DeleteLikeAsync(LikeableType.Startup, id, userId))
+        {
+            return BadRequest("Failed to remove like");
+        }
+        
+        long likes = await _feedContentService.GetLikesCountAsync(LikeableType.Startup, id) ?? 0;
+        bool liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Startup, id, userId) ?? false;
+
+        return new LikesInfo()
+        {
+            LikeableType = LikeableType.Startup,
+            LikeableId = id,
+            Likes = likes,
+            Liked = liked
+        };
+    }
+    
+    [Authorize]
+    [HttpPost("{id:long}/follow")]
+    public async Task<ActionResult<FollowsInfo>> PostFollow(long id)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        var dto = new FollowRawDto()
+        {
+            UserId = userId,
+            StartupId = id,
+        };
+
+        FollowRawDto? result = await _feedContentService.PostFollowAsync(dto);
+        if (result == null)
+        {
+            BadRequest("Failed to like");
+        }
+        
+        long follows = await _feedContentService.GetFollowsCountAsync(id) ?? 0;
+        bool followed = await _feedContentService.GetFollowCheckAsync(id, userId) ?? false;
+
+        return new FollowsInfo()
+        {
+            StartupId = id,
+            Follows = follows,
+            Followed = followed
+        };
+    }
+    
+    [Authorize]
+    [HttpDelete("{id:long}/follow")]
+    public async Task<ActionResult<FollowsInfo>> DeleteFollow(long id)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        if (!await _feedContentService.DeleteFollowAsync(id, userId))
+        {
+            return BadRequest("Failed to remove follow");
+        }
+
+        long follows = await _feedContentService.GetFollowsCountAsync(id) ?? 0;
+        bool followed = await _feedContentService.GetFollowCheckAsync(id, userId) ?? false;
+
+        return new FollowsInfo()
+        {
+            StartupId = id,
+            Follows = follows,
+            Followed = followed
+        };
     }
     
     [HttpGet("{startupId:long}/comments")]

@@ -168,6 +168,20 @@ public class FeedContentService
         }
     }
     
+    public async Task<bool> DeleteLikeAsync(LikeableType likeableType, long likeableId, long userId)
+    {
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/Like?likeableType={likeableType}&likeableId={likeableId}&userId={userId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not delete the like, {Exception}", e.Message);
+            return false;
+        }
+    }
+    
     public async Task<IEnumerable<FollowRawDto>?> GetFollowsAsync(long? startupId = null)
     {
         try
@@ -225,6 +239,20 @@ public class FeedContentService
         {
             _logger.LogError("Could not post the follow, {Exception}", e.Message);
             return null;
+        }
+    }
+    
+    public async Task<bool> DeleteFollowAsync(long startupId, long userId)
+    {
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/Follow?startupId={startupId}&userId={userId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not delete the follow, {Exception}", e.Message);
+            return false;
         }
     }
     
