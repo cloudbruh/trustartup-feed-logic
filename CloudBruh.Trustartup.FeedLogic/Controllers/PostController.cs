@@ -150,4 +150,45 @@ public class PostController : ControllerBase
             };
         }).ToList();
     }
+    
+    [Authorize]
+    [HttpPost("{postId:long}/comment")]
+    public async Task<ActionResult<Comment>> PostComment(long postId, CommentCreation creation)
+    {
+        if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
+        {
+            return BadRequest("Invalid uid in jwt token.");
+        }
+
+        var dto = new CommentRawDto()
+        {
+            UserId = userId,
+            CommentableId = postId,
+            CommentableType = CommentableType.Post,
+            RepliedId = creation.RepliedId,
+            Text = creation.Text
+        };
+
+        dto = await _feedContentService.PostCommentAsync(dto);
+        if (dto == null)
+        {
+            return BadRequest("Failed to create comment");
+        }
+        
+        UserRawDto? user = await _userService.GetUserAsync(userId);
+
+        return new Comment()
+        {
+            Id = dto.Id,
+            UserId = dto.UserId,
+            UserName = user?.Name ?? dto.UserId.ToString(),
+            UserSurname = user?.Surname ?? "",
+            CommentableId = dto.CommentableId,
+            CommentableType = dto.CommentableType,
+            RepliedId = dto.RepliedId,
+            Text = dto.Text,
+            UpdatedAt = dto.UpdatedAt,
+            CreatedAt = dto.CreatedAt
+        };
+    }
 }
