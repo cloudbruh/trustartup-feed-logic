@@ -22,13 +22,13 @@ public class FeedContentService
         _httpClient.BaseAddress = new Uri(config.GetValue<string>("Settings:FeedContentSystemUrl"));
     }
 
-    public async Task<IEnumerable<StartupRawDto>?> GetStartupsAsync(int count = 20, double? maxRating = null)
+    public async Task<IEnumerable<StartupRawDto>?> GetStartupsAsync(int offset = 0, int count = 20, double? maxRating = null)
     {
         try
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<StartupRawDto>>(maxRating == null
-                ? $"api/Startup?count={count}"
-                : $"api/Startup?count={count}&maxRating={maxRating}");
+                ? $"api/Startup?offset={offset}&count={count}"
+                : $"api/Startup?offset={offset}&count={count}&maxRating={maxRating}");
         }
         catch (HttpRequestException e)
         {

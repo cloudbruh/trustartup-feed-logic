@@ -26,9 +26,9 @@ public class StartupFeedController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<StartupFeedItem>>> GetFeed(int count = 20, double? maxRating = null)
+    public async Task<ActionResult<List<StartupFeedItem>>> GetFeed(int offset = 0, int count = 20, double? maxRating = null)
     {
-        List<StartupRawDto> startups = (await _feedContentService.GetStartupsAsync(count, maxRating))?.ToList()
+        List<StartupRawDto> startups = (await _feedContentService.GetStartupsAsync(offset, count, maxRating))?.ToList()
                                        ?? new List<StartupRawDto>();
 
         bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
