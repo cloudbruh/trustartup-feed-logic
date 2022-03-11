@@ -12,12 +12,18 @@ public class StartupController : ControllerBase
     private readonly FeedContentService _feedContentService;
     private readonly UserService _userService;
     private readonly MediaService _mediaService;
+    private readonly PaymentService _paymentService;
 
-    public StartupController(FeedContentService feedContentService, UserService userService, MediaService mediaService)
+    public StartupController(
+        FeedContentService feedContentService,
+        UserService userService,
+        MediaService mediaService,
+        PaymentService paymentService)
     {
         _feedContentService = feedContentService;
         _userService = userService;
         _mediaService = mediaService;
+        _paymentService = paymentService;
     }
 
     // GET: api/Startup/5
@@ -49,6 +55,8 @@ public class StartupController : ControllerBase
             liked = await _feedContentService.GetLikeCheckAsync(LikeableType.Startup, dto.Id, loggedUserId) ?? false;
             followed = await _feedContentService.GetFollowCheckAsync(dto.Id, loggedUserId) ?? false;
         }
+
+        decimal funded = await _paymentService.GetPaymentCountAsync(dto.Id) ?? 0;
         
         return new StartupDetail
         {
@@ -60,6 +68,7 @@ public class StartupController : ControllerBase
             UserSurname = user?.Surname ?? "",
             EndingAt = dto.EndingAt,
             FundsGoal = dto.FundsGoal,
+            TotalFunded = funded,
             Rating = dto.Rating,
             Likes = likes,
             Follows = follows,

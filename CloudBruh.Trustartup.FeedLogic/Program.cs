@@ -10,6 +10,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient<FeedContentService>();
 builder.Services.AddHttpClient<UserService>();
 builder.Services.AddHttpClient<MediaService>();
+builder.Services.AddHttpClient<PaymentService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

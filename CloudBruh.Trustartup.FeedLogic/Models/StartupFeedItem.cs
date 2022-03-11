@@ -10,6 +10,7 @@ public record StartupFeedItem
     public string UserSurname { get; init; }
     public DateTime EndingAt { get; init; }
     public decimal FundsGoal { get; init; }
+    public decimal TotalFunded { get; init; }
     public double Rating { get; init; }
     public long Likes { get; init; }
     public long Follows { get; init; }
