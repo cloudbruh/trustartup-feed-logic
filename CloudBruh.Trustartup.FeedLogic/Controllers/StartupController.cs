@@ -306,4 +306,28 @@ public class StartupController : ControllerBase
             CreatedAt = dto.CreatedAt
         };
     }
+    
+    [HttpGet("{startupId:long}/comments")]
+    public async Task<ActionResult<List<Reward>>> GetStartupRewards(long startupId)
+    {
+        List<RewardRawDto> rewards = (await _feedContentService.GetRewardsAsync(startupId))?.ToList()
+                                      ?? new List<RewardRawDto>();
+
+        return rewards.Select(dto =>
+        {
+            MediaRawDto? media = _mediaService.GetMediumAsync(dto.MediaId).Result;
+            
+            return new Reward
+            {
+                Id = dto.Id,
+                StartupId = dto.StartupId,
+                Name = dto.Name,
+                DonationMinimum = dto.DonationMinimum,
+                MediaLink = media?.Link,
+                Description = dto.Description,
+                UpdatedAt = dto.UpdatedAt,
+                CreatedAt = dto.CreatedAt
+            };
+        }).ToList();
+    }
 }

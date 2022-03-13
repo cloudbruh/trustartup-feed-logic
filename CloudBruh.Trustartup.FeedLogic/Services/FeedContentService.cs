@@ -298,4 +298,33 @@ public class FeedContentService
             return null;
         }
     }
+    
+    public async Task<IEnumerable<RewardRawDto>?> GetRewardsAsync(long? startupId = null)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<RewardRawDto>>(startupId == null
+                    ? "api/Reward"
+                    : $"api/Reward?startupId={startupId}",
+                SerializerOptions);
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve rewards, {Exception}", e.Message);
+            return null;
+        }
+    }
+
+    public async Task<RewardRawDto?> GetRewardAsync(long id)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<RewardRawDto>($"api/Reward/{id}");
+        }
+        catch (HttpRequestException e)
+        {
+            _logger.LogError("Could not retrieve reward with id {Id}, {Exception}", id, e.Message);
+            return null;
+        }
+    }
 }
