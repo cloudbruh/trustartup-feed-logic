@@ -12,6 +12,7 @@ public record StartupDetail
     public decimal FundsGoal { get; init; }
     public decimal TotalFunded { get; init; }
     public double Rating { get; init; }
+    public StartupStatus Status { get; init; }
     public long Likes { get; init; }
     public long Follows { get; init; }
     public bool Liked { get; init; }

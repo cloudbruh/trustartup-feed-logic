@@ -70,6 +70,7 @@ public class StartupController : ControllerBase
             FundsGoal = dto.FundsGoal,
             TotalFunded = funded,
             Rating = dto.Rating,
+            Status = dto.Status,
             Likes = likes,
             Follows = follows,
             Liked = liked,
