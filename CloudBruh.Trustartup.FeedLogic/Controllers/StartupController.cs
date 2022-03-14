@@ -32,7 +32,7 @@ public class StartupController : ControllerBase
     {
         StartupRawDto? dto = await _feedContentService.GetStartupAsync(id);
 
-        if (dto is null)
+        if (dto is null || dto.Status != StartupStatus.Published)
         {
             return NotFound();
         }
@@ -83,6 +83,11 @@ public class StartupController : ControllerBase
     [HttpGet("{startupId:long}/posts")]
     public async Task<ActionResult<List<Post>>> GetStartupPosts(long startupId)
     {
+        if (!await _feedContentService.CheckStartupPublished(startupId))
+        {
+            return NotFound();
+        }
+        
         bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
         
         return (await _feedContentService.GetPostsAsync(startupId) ?? Array.Empty<PostRawDto>())
@@ -121,6 +126,11 @@ public class StartupController : ControllerBase
     [HttpPost("{id:long}/like")]
     public async Task<ActionResult<LikesInfo>> PostLike(long id)
     {
+        if (!await _feedContentService.CheckStartupPublished(id))
+        {
+            return NotFound();
+        }
+        
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
             return BadRequest("Invalid uid in jwt token.");
@@ -155,6 +165,11 @@ public class StartupController : ControllerBase
     [HttpDelete("{id:long}/like")]
     public async Task<ActionResult<LikesInfo>> DeleteLike(long id)
     {
+        if (!await _feedContentService.CheckStartupPublished(id))
+        {
+            return NotFound();
+        }
+        
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
             return BadRequest("Invalid uid in jwt token.");
@@ -181,6 +196,11 @@ public class StartupController : ControllerBase
     [HttpPost("{id:long}/follow")]
     public async Task<ActionResult<FollowsInfo>> PostFollow(long id)
     {
+        if (!await _feedContentService.CheckStartupPublished(id))
+        {
+            return NotFound();
+        }
+        
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
             return BadRequest("Invalid uid in jwt token.");
@@ -213,6 +233,11 @@ public class StartupController : ControllerBase
     [HttpDelete("{id:long}/follow")]
     public async Task<ActionResult<FollowsInfo>> DeleteFollow(long id)
     {
+        if (!await _feedContentService.CheckStartupPublished(id))
+        {
+            return NotFound();
+        }
+        
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
             return BadRequest("Invalid uid in jwt token.");
@@ -237,6 +262,11 @@ public class StartupController : ControllerBase
     [HttpGet("{startupId:long}/comments")]
     public async Task<ActionResult<List<Comment>>> GetStartupComments(long startupId)
     {
+        if (!await _feedContentService.CheckStartupPublished(startupId))
+        {
+            return NotFound();
+        }
+        
         List<CommentRawDto> comments = (await _feedContentService.GetCommentsAsync(CommentableType.Startup, startupId))?.ToList()
                                        ?? new List<CommentRawDto>();
         
@@ -270,6 +300,11 @@ public class StartupController : ControllerBase
     [HttpPost("{startupId:long}/comment")]
     public async Task<ActionResult<Comment>> PostComment(long startupId, CommentCreation creation)
     {
+        if (!await _feedContentService.CheckStartupPublished(startupId))
+        {
+            return NotFound();
+        }
+        
         if (!long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long userId))
         {
             return BadRequest("Invalid uid in jwt token.");
@@ -310,6 +345,11 @@ public class StartupController : ControllerBase
     [HttpGet("{startupId:long}/rewards")]
     public async Task<ActionResult<List<Reward>>> GetStartupRewards(long startupId)
     {
+        if (!await _feedContentService.CheckStartupPublished(startupId))
+        {
+            return NotFound();
+        }
+        
         List<RewardRawDto> rewards = (await _feedContentService.GetRewardsAsync(startupId))?.ToList()
                                       ?? new List<RewardRawDto>();
 

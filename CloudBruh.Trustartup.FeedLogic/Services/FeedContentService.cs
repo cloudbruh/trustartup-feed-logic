@@ -28,7 +28,8 @@ public class FeedContentService
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<StartupRawDto>>(maxRating == null
                 ? $"api/Startup?offset={offset}&count={count}"
-                : $"api/Startup?offset={offset}&count={count}&maxRating={maxRating}");
+                : $"api/Startup?offset={offset}&count={count}&maxRating={maxRating}",
+                SerializerOptions);
         }
         catch (HttpRequestException e)
         {
@@ -41,7 +42,7 @@ public class FeedContentService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<StartupRawDto>($"api/Startup/{id}");
+            return await _httpClient.GetFromJsonAsync<StartupRawDto>($"api/Startup/{id}", SerializerOptions);
         }
         catch (HttpRequestException e)
         {
@@ -79,6 +80,13 @@ public class FeedContentService
             return null;
         }
     }
+
+    public async Task<bool> CheckStartupPublished(long id)
+    {
+        StartupRawDto? startupDto = await GetStartupAsync(id);
+
+        return startupDto is not null && startupDto.Status == StartupStatus.Published;
+    }
     
     public async Task<IEnumerable<PostRawDto>?> GetPostsAsync(long? startupId = null)
     {
@@ -86,7 +94,8 @@ public class FeedContentService
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<PostRawDto>>(startupId == null
                 ? "api/Post"
-                : $"api/Post?startupId={startupId}");
+                : $"api/Post?startupId={startupId}",
+                SerializerOptions);
         }
         catch (HttpRequestException e)
         {
@@ -99,7 +108,7 @@ public class FeedContentService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<PostRawDto>($"api/Post/{id}");
+            return await _httpClient.GetFromJsonAsync<PostRawDto>($"api/Post/{id}", SerializerOptions);
         }
         catch (HttpRequestException e)
         {
@@ -319,7 +328,7 @@ public class FeedContentService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<RewardRawDto>($"api/Reward/{id}");
+            return await _httpClient.GetFromJsonAsync<RewardRawDto>($"api/Reward/{id}", SerializerOptions);
         }
         catch (HttpRequestException e)
         {

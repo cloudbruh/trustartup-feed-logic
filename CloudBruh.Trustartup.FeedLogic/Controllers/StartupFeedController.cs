@@ -34,12 +34,15 @@ public class StartupFeedController : ControllerBase
         bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
 
         Dictionary<long, UserRawDto?> users = startups
+            .Where(dto => dto.Status == StartupStatus.Published)
             .Select(dto => dto.UserId)
             .Distinct()
             .Select(userId => (userId, _userService.GetUserAsync(userId).Result))
             .ToDictionary(tuple => tuple.userId, tuple => tuple.Result);
 
-        return startups.Select(dto =>
+        return startups
+            .Where(dto => dto.Status == StartupStatus.Published)
+            .Select(dto =>
         {
             users.TryGetValue(dto.UserId, out UserRawDto? user);
 

@@ -16,6 +16,8 @@ public record StartupRawDto(string Name, string Description)
     
     public double Rating { get; init; }
     
+    public StartupStatus Status { get; init; }
+    
     public DateTime UpdatedAt { get; init; }
     
     public DateTime CreatedAt { get; init; }
