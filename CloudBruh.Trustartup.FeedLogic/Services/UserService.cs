@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using CloudBruh.Trustartup.FeedLogic.Models;
 
 namespace CloudBruh.Trustartup.FeedLogic.Services;
@@ -13,6 +14,7 @@ public class UserService
         _httpClient = httpClient;
         
         _httpClient.BaseAddress = new Uri(config.GetValue<string>("Settings:UserSystemUrl"));
+        _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue {NoCache = true};
     }
     
     public async Task<IEnumerable<UserRawDto>?> GetUsersAsync()

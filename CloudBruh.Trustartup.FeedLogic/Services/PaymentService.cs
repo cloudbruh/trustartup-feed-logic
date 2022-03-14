@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+
 namespace CloudBruh.Trustartup.FeedLogic.Services;
 
 public class PaymentService
@@ -11,6 +13,7 @@ public class PaymentService
         _httpClient = httpClient;
         
         _httpClient.BaseAddress = new Uri(config.GetValue<string>("Settings:PaymentSystemUrl"));
+        _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue {NoCache = true};
     }
     
     public async Task<decimal?> GetPaymentCountAsync(long startupId)

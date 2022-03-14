@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CloudBruh.Trustartup.FeedLogic.Models;
@@ -20,6 +21,7 @@ public class FeedContentService
         _httpClient = httpClient;
         
         _httpClient.BaseAddress = new Uri(config.GetValue<string>("Settings:FeedContentSystemUrl"));
+        _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue {NoCache = true};
     }
 
     public async Task<IEnumerable<StartupRawDto>?> GetStartupsAsync(int offset = 0, int count = 20, double? maxRating = null)
