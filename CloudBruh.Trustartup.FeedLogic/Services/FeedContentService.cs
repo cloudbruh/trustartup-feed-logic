@@ -24,13 +24,14 @@ public class FeedContentService
         _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue {NoCache = true};
     }
 
-    public async Task<IEnumerable<StartupRawDto>?> GetStartupsAsync(int offset = 0, int count = 20, double? maxRating = null)
+    public async Task<IEnumerable<StartupRawDto>?> GetStartupsAsync(
+        int offset = 0, int count = 20, double? maxRating = null, bool filterPublished = false)
     {
         try
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<StartupRawDto>>(maxRating == null
-                ? $"api/Startup?offset={offset}&count={count}"
-                : $"api/Startup?offset={offset}&count={count}&maxRating={maxRating}",
+                ? $"api/Startup?offset={offset}&count={count}&filterPublished={filterPublished}"
+                : $"api/Startup?offset={offset}&count={count}&maxRating={maxRating}&filterPublished={filterPublished}",
                 SerializerOptions);
         }
         catch (HttpRequestException e)
@@ -51,6 +52,13 @@ public class FeedContentService
             _logger.LogError("Could not retrieve startup with id {Id}, {Exception}", id, e.Message);
             return null;
         }
+    }
+    
+    public async Task<bool> CheckStartupPublished(long id)
+    {
+        StartupRawDto? startupDto = await GetStartupAsync(id);
+
+        return startupDto is not null && startupDto.Status == StartupStatus.Published;
     }
     
     public async Task<IEnumerable<MediaRelationshipRawDto>?> GetMediaRelationshipsAsync(MediableType? mediableType = null, long? mediableId = null)
@@ -83,13 +91,6 @@ public class FeedContentService
         }
     }
 
-    public async Task<bool> CheckStartupPublished(long id)
-    {
-        StartupRawDto? startupDto = await GetStartupAsync(id);
-
-        return startupDto is not null && startupDto.Status == StartupStatus.Published;
-    }
-    
     public async Task<IEnumerable<PostRawDto>?> GetPostsAsync(long? startupId = null)
     {
         try
