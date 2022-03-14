@@ -32,7 +32,7 @@ public class StartupController : ControllerBase
     {
         StartupRawDto? dto = await _feedContentService.GetStartupAsync(id);
 
-        if (dto is null || dto.Status != StartupStatus.Published)
+        if (dto is null)
         {
             return NotFound();
         }
@@ -83,11 +83,6 @@ public class StartupController : ControllerBase
     [HttpGet("{startupId:long}/posts")]
     public async Task<ActionResult<List<Post>>> GetStartupPosts(long startupId)
     {
-        if (!await _feedContentService.CheckStartupPublished(startupId))
-        {
-            return NotFound();
-        }
-        
         bool loggedIn = long.TryParse(User.Claims.FirstOrDefault(claim => claim.Type == "uid")?.Value, out long loggedUserId);
         
         return (await _feedContentService.GetPostsAsync(startupId) ?? Array.Empty<PostRawDto>())
