@@ -307,7 +307,7 @@ public class StartupController : ControllerBase
         };
     }
     
-    [HttpGet("{startupId:long}/comments")]
+    [HttpGet("{startupId:long}/rewards")]
     public async Task<ActionResult<List<Reward>>> GetStartupRewards(long startupId)
     {
         List<RewardRawDto> rewards = (await _feedContentService.GetRewardsAsync(startupId))?.ToList()
